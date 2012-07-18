@@ -6,6 +6,32 @@ execute "Load device mapper kernel module" do
   ignore_failure true
 end
 
+credentials = Chef::EncryptedDataBagItem.load('credentials', 'aws')
+
+node[:ebs][:raids].each do |device, options|
+  disks = []
+  if !options[:disks] && options[:num_disks]
+    next_mount = Dir.glob('/dev/xvd?').sort.last[-1,1].succ
+    1.upto(options[:num_disks].to_i) do |i|
+      disks << mount = "/dev/sd#{next_mount}"
+      next_mount = next_mount.succ
+
+      vol = aws_ebs_volume mount do
+        aws_access_key credentials['access_key_id']
+        aws_secret_access_key credentials['secret_access_key']
+        size options[:disk_size]
+        device mount
+        availability_zone node[:ec2][:placement_availability_zone]
+        action :nothing
+      end
+      vol.run_action(:create)
+      vol.run_action(:attach)
+    end
+  end
+  node.set[:ebs][:raids][device][:disks] = disks.map { |d| d.sub('/sd', '/xvd') } if !disks.empty?
+  node.save unless Chef::Config[:solo]
+end
+
 node[:ebs][:raids].each do |raid_device, options|
   lvm_device = BlockDevice.lvm_device(raid_device)
 

@@ -2,6 +2,8 @@ package "xfsprogs"
 package "xfsdump"
 package "xfslibs-dev"
 
+include_recipe 'aws'
+
 # VirtIO device name mapping
 if BlockDevice.on_kvm?
 
@@ -28,7 +30,7 @@ if BlockDevice.on_kvm?
 end
 
 include_recipe "ebs::volumes"
-unless node[:ebs][:raids].blank?
+unless node[:ebs][:raids].empty?
   include_recipe "ebs::raids"
 end 
 
