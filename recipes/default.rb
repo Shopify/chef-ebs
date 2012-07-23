@@ -29,8 +29,5 @@ if BlockDevice.on_kvm?
 
 end
 
-include_recipe "ebs::volumes"
-unless node[:ebs][:raids].empty?
-  include_recipe "ebs::raids"
-end 
-
+include_recipe "ebs::volumes" unless node[:ebs][:volumes].empty?
+include_recipe "ebs::raids" unless node[:ebs][:raids].empty?
