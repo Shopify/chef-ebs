@@ -1,3 +1,5 @@
+default[:ebs][:creds][:databag] = "credentials"
+default[:ebs][:creds][:item] = "aws"
 default[:ebs][:volumes] = {}
 default[:ebs][:raids] = {}
 default[:ebs][:mdadm_chunk_size] = '256'
