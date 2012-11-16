@@ -46,6 +46,12 @@ Create a 10GB volume, format it with XFS, and mount it on `/data`.
 }
 ```
 
+## Credentials
+
+Expects a `credentials` databag with an `aws` item that contains `access_key_id` and `secret_access_key`.
+
+You can override the databag and item names with `node[:ebs][:creds][:databag]`, and `node[:ebs][:creds][:item]`, but the key names are static.
+
 ## Requirements
 
 - [Opscode AWS Cookbook](https://github.com/opscode-cookbooks/aws)
