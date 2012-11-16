@@ -6,7 +6,7 @@ execute "Load device mapper kernel module" do
   ignore_failure true
 end
 
-credentials = Chef::EncryptedDataBagItem.load("#{node[:ebs][:creds][:databag]}", "#{node[:ebs][:creds][:item]}")
+credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
 
 node[:ebs][:raids].each do |device, options|
   disks = []
