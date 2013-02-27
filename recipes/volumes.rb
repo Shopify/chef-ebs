@@ -6,7 +6,9 @@ node[:ebs][:volumes].each do |mount_point, options|
       credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
     end
 
-    devid = Dir.glob('/dev/xvd?').sort.last[-1,1].succ
+    devices = Dir.glob('/dev/xvd?')
+    devices = ['/dev/xvdf'] if devices.empty?
+    devid = devices.sort.last[-1,1].succ
     device = "/dev/sd#{devid}"
 
     vol = aws_ebs_volume device do
