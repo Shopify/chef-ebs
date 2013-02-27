@@ -1,12 +1,17 @@
 node[:ebs][:volumes].each do |mount_point, options|
   if !options[:device] && options[:size]
-    credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
+    if node[:ebs][:creds][:encrypted]
+      credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
+    else
+      credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+    end
+
     devid = Dir.glob('/dev/xvd?').sort.last[-1,1].succ
     device = "/dev/sd#{devid}"
 
     vol = aws_ebs_volume device do
-      aws_access_key credentials['access_key_id']
-      aws_secret_access_key credentials['secret_access_key']
+      aws_access_key credentials[node.ebs.creds.aki]
+      aws_secret_access_key credentials[node.ebs.creds.sak]
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
