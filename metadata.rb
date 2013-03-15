@@ -1,6 +1,7 @@
 # Original source: https://github.com/scalarium/cookbooks/tree/master/ebs
 # Updated by Jonathan Rudenberg (jonathan@titanous.com)
 
+name "ebs"
 maintainer "Jonathan Rudenberg"
 maintainer_email "jonathan@titanous.com"
 description "Mounts attached EBS volumes"
