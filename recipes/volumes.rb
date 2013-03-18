@@ -46,5 +46,8 @@ node[:ebs][:volumes].each do |mount_point, options|
     device options[:device]
     options 'noatime,nobootwait'
     action [:mount, :enable]
+    not_if do
+      File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{options[:mount_point]} ")}
+    end
   end
 end
