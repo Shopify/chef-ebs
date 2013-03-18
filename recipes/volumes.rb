@@ -1,9 +1,6 @@
 node[:ebs][:volumes].each do |mount_point, options|
   
   # skip volumes that already exist
-  puts mount_point
-  puts File.read('/etc/mtab')
-  puts File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
   next if File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
   
   # create ebs volume
