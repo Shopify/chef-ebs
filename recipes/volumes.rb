@@ -1,4 +1,12 @@
 node[:ebs][:volumes].each do |mount_point, options|
+  
+  # skip volumes that already exist
+  puts mount_point
+  puts File.read('/etc/mtab')
+  puts File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
+  next if File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
+  
+  # create ebs volume
   if !options[:device] && options[:size]
     if node[:ebs][:creds][:encrypted]
       credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
@@ -24,9 +32,9 @@ node[:ebs][:volumes].each do |mount_point, options|
     node.set[:ebs][:volumes][mount_point][:device] = "/dev/xvd#{devid}"
     node.save
   end
-end
 
-node[:ebs][:volumes].each do |mount_point, options|
+  # mount volume
+  
   execute 'mkfs' do
     command "mkfs -t #{options[:fstype]} #{options[:device]}"
     not_if do
@@ -46,8 +54,6 @@ node[:ebs][:volumes].each do |mount_point, options|
     device options[:device]
     options 'noatime,nobootwait'
     action [:mount, :enable]
-    not_if do
-      File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
-    end
   end
+  
 end
