@@ -15,7 +15,7 @@ node[:ebs][:volumes].each do |mount_point, options|
     devices = ['/dev/xvdf'] if devices.empty?
     devid = devices.sort.last[-1,1].succ
     device = "/dev/sd#{devid}"
-
+    
     vol = aws_ebs_volume device do
       aws_access_key credentials[node.ebs.creds.aki]
       aws_secret_access_key credentials[node.ebs.creds.sak]
@@ -32,11 +32,15 @@ node[:ebs][:volumes].each do |mount_point, options|
 
   # mount volume
   
+  # Use the provided device name, or the name of the mounted device if a device was not provided
+  device = options[:device] || node[:ebs][:volumes][mount_point][:device]  
+  
   execute 'mkfs' do
-    command "mkfs -t #{options[:fstype]} #{options[:device]}"
+    only_if { device and options.has_key?(:fstype) }
+    command "mkfs -t #{options[:fstype]} #{device}"
     not_if do
-      BlockDevice.wait_for(options[:device])
-      system("blkid -s TYPE -o value #{options[:device]}")
+      BlockDevice.wait_for(device)
+      system("blkid -s TYPE -o value #{device}")
     end
   end
 
@@ -48,7 +52,7 @@ node[:ebs][:volumes].each do |mount_point, options|
 
   mount mount_point do
     fstype options[:fstype]
-    device options[:device]
+    device device
     options 'noatime,nobootwait'
     action [:mount, :enable]
   end
