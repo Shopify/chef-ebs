@@ -15,6 +15,8 @@ node[:ebs][:volumes].each do |mount_point, options|
     devices = ['/dev/xvdf'] if devices.empty?
     devid = devices.sort.last[-1,1].succ
     device = "/dev/sd#{devid}"
+    
+    options[:device] = device unless options.has_key?(:device)
 
     vol = aws_ebs_volume device do
       aws_access_key credentials[node.ebs.creds.aki]
@@ -33,6 +35,7 @@ node[:ebs][:volumes].each do |mount_point, options|
   # mount volume
   
   execute 'mkfs' do
+    only_if { options.has_key?(:device) and options.has_key?(:fstype) }
     command "mkfs -t #{options[:fstype]} #{options[:device]}"
     not_if do
       BlockDevice.wait_for(options[:device])
