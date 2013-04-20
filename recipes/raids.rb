@@ -100,12 +100,8 @@ node[:ebs][:raids].each do |raid_device, options|
     end
   end
 
-  template "/etc/mdadm/mdadm.conf" do
-    source "mdadm.conf.erb"
-    mode 0644
-    owner 'root'
-    group 'root'
-  end
+  execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
+  execute "update-initramfs -u"
 
   template "/etc/rc.local" do
     source "rc.local.erb"
