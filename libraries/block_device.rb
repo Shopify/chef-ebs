@@ -39,7 +39,7 @@ module BlockDevice
 
   def self.assembled_raid_at?(device)
     raids = `mdadm --detail --scan`
-    if raids.match(device)
+    if raids.match(device) || raids.match(device.gsub(/md/, "md/"))
       Chef::Log.debug("Checking for running RAID arrays at #{device}: #{raids}")
       Chef::Log.info("Checking for running RAID arrays at #{device}: true")
       true
