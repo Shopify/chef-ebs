@@ -95,9 +95,6 @@ node[:ebs][:raids].each do |raid_device, options|
     fstype options[:fstype]
     device lvm_device
     options "noatime"
-    not_if do
-      File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{options[:mount_point]} ")}
-    end
   end
 
   execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
