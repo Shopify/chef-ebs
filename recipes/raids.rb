@@ -53,7 +53,7 @@ node[:ebs][:raids].each do |raid_device, options|
           BlockDevice.assemble_raid(raid_device, options)
         end
       else
-        BlockDevice.create_raid(raid_device, options.update(:chunk_size => node[:ebs][:mdadm_chunk_size]))
+        BlockDevice.create_raid(raid_device, node[:ebs][:mdadm_chunk_size], options)
       end
 
       BlockDevice.set_read_ahead(raid_device, node[:ebs][:md_read_ahead])
@@ -95,17 +95,10 @@ node[:ebs][:raids].each do |raid_device, options|
     fstype options[:fstype]
     device lvm_device
     options "noatime"
-    not_if do
-      File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{options[:mount_point]} ")}
-    end
   end
 
-  template "/etc/mdadm/mdadm.conf" do
-    source "mdadm.conf.erb"
-    mode 0644
-    owner 'root'
-    group 'root'
-  end
+  execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
+  execute "update-initramfs -u"
 
   template "/etc/rc.local" do
     source "rc.local.erb"
