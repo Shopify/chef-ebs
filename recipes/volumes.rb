@@ -27,7 +27,7 @@ node[:ebs][:volumes].each do |mount_point, options|
     vol.run_action(:create)
     vol.run_action(:attach)
     node.set[:ebs][:volumes][mount_point][:device] = "/dev/xvd#{devid}"
-    node.save
+    node.save unless Chef::Config[:solo]
   end
 
   # mount volume
