@@ -1,7 +1,7 @@
 default[:ebs][:creds][:databag] = "credentials"
 default[:ebs][:creds][:item] = "aws"
-default[:ebs][:creds][:aki] = "access_key_id"
-default[:ebs][:creds][:sak] = "secret_access_key"
+default[:ebs][:creds][:aki] = "aws_access_key_id"
+default[:ebs][:creds][:sak] = "aws_secret_access_key"
 default[:ebs][:creds][:encrypted] = true
 default[:ebs][:volumes] = {}
 default[:ebs][:raids] = {}

@@ -15,7 +15,12 @@ end
 node[:ebs][:raids].each do |device, options|
   disks = []
   if !options[:disks] && options[:num_disks]
-    next_mount = Dir.glob('/dev/xvd?').sort.last[-1,1].succ
+    devices = Dir.glob('/dev/xvd*')
+    if devices.empty?
+      next_mount = "/dev/xvda"
+    else
+      next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
+    end
     1.upto(options[:num_disks].to_i) do |i|
       disks << mount = "/dev/sd#{next_mount}"
       next_mount = next_mount.succ
@@ -53,7 +58,7 @@ node[:ebs][:raids].each do |raid_device, options|
           BlockDevice.assemble_raid(raid_device, options)
         end
       else
-        BlockDevice.create_raid(raid_device, options.update(:chunk_size => node[:ebs][:mdadm_chunk_size]))
+        BlockDevice.create_raid(raid_device, node[:ebs][:mdadm_chunk_size], options)
       end
 
       BlockDevice.set_read_ahead(raid_device, node[:ebs][:md_read_ahead])
@@ -95,17 +100,10 @@ node[:ebs][:raids].each do |raid_device, options|
     fstype options[:fstype]
     device lvm_device
     options "noatime"
-    not_if do
-      File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{options[:mount_point]} ")}
-    end
   end
 
-  template "/etc/mdadm/mdadm.conf" do
-    source "mdadm.conf.erb"
-    mode 0644
-    owner 'root'
-    group 'root'
-  end
+  execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
+  execute "update-initramfs -u"
 
   template "/etc/rc.local" do
     source "rc.local.erb"
