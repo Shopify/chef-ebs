@@ -15,7 +15,12 @@ end
 node[:ebs][:raids].each do |device, options|
   disks = []
   if !options[:disks] && options[:num_disks]
-    next_mount = Dir.glob('/dev/xvd?').sort.last[-1,1].succ
+    devices = Dir.glob('/dev/xvd*')
+    if devices.empty?
+      next_mount = "/dev/xvda"
+    else
+      next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
+    end
     1.upto(options[:num_disks].to_i) do |i|
       disks << mount = "/dev/sd#{next_mount}"
       next_mount = next_mount.succ
