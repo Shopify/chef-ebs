@@ -17,7 +17,7 @@ node[:ebs][:raids].each do |device, options|
   if !options[:disks] && options[:num_disks]
     devices = Dir.glob('/dev/xvd*')
     if devices.empty?
-      next_mount = "/dev/xvda"
+      next_mount = "a"
     else
       next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
     end
