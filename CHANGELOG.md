@@ -1,3 +1,5 @@
+## v0.3.3
+- Update README.md with example for persistent_volumes
 ## v0.3.2
 - support for raid without using lvm
 - support for persistent raid volumes with ebs volumes defined in attribtutes
