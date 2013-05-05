@@ -1,6 +1,11 @@
-package "xfsprogs"
-package "xfsdump"
-package "xfslibs-dev"
+# xfsdump is not an Amazon Linux package at this moment.
+case node[:platform]
+when 'debian','ubuntu'
+  package 'xfsdump'
+  package 'xfslibs-dev'
+when 'redhat','centos','fedora','amazon'
+  package 'xfsprogs-devel'
+end
 
 include_recipe 'aws'
 
