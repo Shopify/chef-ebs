@@ -5,8 +5,9 @@ name "ebs"
 maintainer "Jonathan Rudenberg"
 maintainer_email "jonathan@titanous.com"
 description "Mounts attached EBS volumes"
-version "0.3.1"
+version "0.3.2"
 recipe "ebs::volumes", "Mounts attached EBS volumes"
 recipe "ebs::raids", "Mounts attached EBS RAIDs"
+recipe "ebs::persistent", "Mounts volumes defined in attributes"
 
 depends 'aws'
