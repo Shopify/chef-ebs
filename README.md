@@ -22,7 +22,8 @@ Create a RAID 10 across four 10GB volumes, format it with XFS, and mount it on
         :disk_size => 10,
         :raid_level => 10,
         :fstype => 'xfs',
-        :mount_point => '/data'
+        :mount_point => '/data',
+        :uselvm => true
       }
     }
   }

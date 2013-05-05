@@ -65,18 +65,22 @@ node[:ebs][:raids].each do |raid_device, options|
     end
   end
 
-  ruby_block "Create or attach LVM volume out of #{raid_device}" do
-    block do
-      BlockDevice.create_lvm(raid_device, options)
+  devicetomount = raid_device
+  if options[:use_lvm] == true
+    ruby_block "Create or attach LVM volume out of #{raid_device}" do
+      block do
+        BlockDevice.create_lvm(raid_device, options)
+      end
     end
+    devicetomount = lvm_device
   end
 
   execute "mkfs" do
-    command "mkfs -t #{options[:fstype]} #{lvm_device}"
+    command "mkfs -t #{options[:fstype]} #{devicetomount}"
 
     not_if do
       # check volume filesystem
-      system("blkid -s TYPE -o value #{lvm_device}")
+      system("blkid -s TYPE -o value #{devicetomount}")
     end
   end
 
@@ -88,7 +92,7 @@ node[:ebs][:raids].each do |raid_device, options|
 
   mount options[:mount_point] do
     fstype options[:fstype]
-    device lvm_device
+    device devicetomount
     options "noatime"
     not_if do
       File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{options[:mount_point]} ")}
@@ -98,12 +102,33 @@ node[:ebs][:raids].each do |raid_device, options|
   mount options[:mount_point] do
     action :enable
     fstype options[:fstype]
-    device lvm_device
+    device devicetomount
     options "noatime"
   end
 
   execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
-  execute "update-initramfs -u"
+
+  initrd = "/boot/initrd.img-#{node['kernel']['release']}"
+  if File.exists?(initrd)
+    initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
+    geninitrd = initmd5 != node['ebs']['initrd_md5']
+    Chef::Log.debug("oldinitrd md5: #{initmd5}")
+  else
+    geninitrd = true
+  end
+
+  execute "update-initramfs -u" do
+    action :run
+    only_if { geninitrd }
+  end
+
+  ruby_block "calculate new md5" do
+    block do
+      node.set['ebs']['initrd_md5'] = Digest::MD5.hexdigest(IO.read(initrd)) if geninitrd
+      Chef::Log.debug("after initrd md5: #{node['ebs']['initrd_md5']}")
+    end
+    action :create
+  end
 
   template "/etc/rc.local" do
     source "rc.local.erb"
