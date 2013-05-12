@@ -6,11 +6,11 @@ filesystems and RAID arrays on them.
 
 ## Usage
 
-Add `recipe[ebs]` to your run list, and configure these attributes:
-
 ### RAID Array Creation
 
-Create a RAID 10 across four 10GB volumes, format it with XFS, and mount it on
+Add `recipe[ebs]` to your run list, and configure these attributes:
+
+Create a RAID 10 across four 10GB volumes, make it an lvm logical volume, format it with XFS, and mount it on
 `/data`.
 
 ```ruby
@@ -24,6 +24,33 @@ Create a RAID 10 across four 10GB volumes, format it with XFS, and mount it on
         :fstype => 'xfs',
         :mount_point => '/data',
         :uselvm => true,
+        :persistent_volumes => [
+          "vol-xxxxxxxx",
+          "vol-xxxxxxxx",
+          "vol-xxxxxxxx",
+          "vol-xxxxxxxx"
+        ]
+      }
+    }
+  }
+}
+```
+
+### Use Existing Volumes for RAID Array
+
+Add `recipe[persistent]` to your run list, and configure these attributes:
+
+Create a RAID 10 across the volumes specified in the `persistent_volumes` array, do not use LVM,  format it with XFS, and mount it on `/data`.
+
+```ruby
+{
+  :ebs => {
+    :raids => {
+      '/dev/md0' => {
+        :raid_level => 10,
+        :fstype => 'xfs',
+        :mount_point => '/data',
+        :uselvm => false,
         :persistent_volumes => [
           "vol-xxxxxxxx",
           "vol-xxxxxxxx",
