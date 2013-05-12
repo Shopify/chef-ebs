@@ -1,3 +1,5 @@
+## v0.3.4
+- Merge upstream changes and update README
 ## v0.3.3
 - Update README.md with example for persistent_volumes
 ## v0.3.2
