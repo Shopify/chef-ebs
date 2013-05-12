@@ -24,12 +24,6 @@ Create a RAID 10 across four 10GB volumes, make it an lvm logical volume, format
         :fstype => 'xfs',
         :mount_point => '/data',
         :uselvm => true,
-        :persistent_volumes => [
-          "vol-xxxxxxxx",
-          "vol-xxxxxxxx",
-          "vol-xxxxxxxx",
-          "vol-xxxxxxxx"
-        ]
       }
     }
   }
