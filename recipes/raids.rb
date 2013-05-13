@@ -31,6 +31,8 @@ node[:ebs][:raids].each do |device, options|
         size options[:disk_size]
         device mount
         availability_zone node[:ec2][:placement_availability_zone]
+        volume_type options[:piops] ? 'io1' : 'standard'
+        piops options[:piops]
         action :nothing
       end
       vol.run_action(:create)
