@@ -10,4 +10,4 @@ recipe "ebs::volumes", "Mounts attached EBS volumes"
 recipe "ebs::raids", "Mounts attached EBS RAIDs"
 recipe "ebs::persistent", "Mounts volumes defined in attributes"
 
-depends 'aws'
+depends 'aws', '>= 0.101.0'

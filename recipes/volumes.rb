@@ -22,6 +22,8 @@ node[:ebs][:volumes].each do |mount_point, options|
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
+      volume_type options[:piops] ? 'io1' : 'standard'
+      piops options[:piops]
       action :nothing
     end
     vol.run_action(:create)
