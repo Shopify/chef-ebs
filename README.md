@@ -10,7 +10,7 @@ filesystems and RAID arrays on them.
 
 Add `recipe[ebs]` to your run list, and configure these attributes:
 
-Create a RAID 10 across four 10GB volumes, make it an lvm logical volume, format it with XFS, and mount it on
+Create a RAID 10 across four 10GB volumes each with 2000 provisioned iops, make it an lvm logical volume, format it with XFS, and mount it on
 `/data`.
 
 ```ruby
@@ -20,6 +20,7 @@ Create a RAID 10 across four 10GB volumes, make it an lvm logical volume, format
       '/dev/md0' => {
         :num_disks => 4,
         :disk_size => 10,
+        :piops => 2000,
         :raid_level => 10,
         :fstype => 'xfs',
         :mount_point => '/data',
@@ -59,7 +60,7 @@ Create a RAID 10 across the volumes specified in the `persistent_volumes` array,
 
 ### EBS Volume Creation
 
-Create a 10GB volume, format it with XFS, and mount it on `/data`.
+Create a 10GB volume with 1000 provisioned iops, format it with XFS, and mount it on `/data`.
 
 ```ruby
 {
@@ -67,6 +68,7 @@ Create a 10GB volume, format it with XFS, and mount it on `/data`.
     :volumes => {
       '/data' => {
         :size => 10,
+        :piops => 1000,
         :fstype => 'xfs'
       }
     }
