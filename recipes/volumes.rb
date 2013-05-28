@@ -1,8 +1,8 @@
 node[:ebs][:volumes].each do |mount_point, options|
-
+  
   # skip volumes that already exist
   next if File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
-
+  
   # create ebs volume
   if !options[:device] && options[:size]
     if node[:ebs][:creds][:encrypted]
@@ -22,8 +22,6 @@ node[:ebs][:volumes].each do |mount_point, options|
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
-      volume_type options[:piops] ? 'io1' : 'standard'
-      piops options[:piops]
       action :nothing
     end
     vol.run_action(:create)
@@ -52,18 +50,10 @@ node[:ebs][:volumes].each do |mount_point, options|
     mode 0755
   end
 
-  mount_options = if !options[:mount_options].to_a.empty?
-                    options[:mount_options].join(",")
-                  elsif node[:platform] == 'amazon'
-                    'noatime'
-                  else
-                    'noatime,nobootwait'
-                  end
-
   mount mount_point do
     fstype options[:fstype]
     device device
-    options mount_options
+    options 'noatime,nobootwait'
     action [:mount, :enable]
   end
 
