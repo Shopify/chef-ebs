@@ -1,3 +1,5 @@
+include_recipe 'delayed_evaluator'
+
 package "mdadm"
 package "lvm2"
 
@@ -25,7 +27,7 @@ node[:ebs][:raids].each do |device, options|
       disks << mount = "/dev/sd#{next_mount}"
       next_mount = next_mount.succ
 
-      vol = aws_ebs_volume mount do
+      aws_ebs_volume mount do
         aws_access_key credentials[node.ebs.creds.aki]
         aws_secret_access_key credentials[node.ebs.creds.sak]
         size options[:disk_size]
@@ -33,10 +35,8 @@ node[:ebs][:raids].each do |device, options|
         availability_zone node[:ec2][:placement_availability_zone]
         volume_type options[:piops] ? 'io1' : 'standard'
         piops options[:piops]
-        action :nothing
+        action [ :create, :attach ]
       end
-      vol.run_action(:create)
-      vol.run_action(:attach)
     end
   end
   node.set[:ebs][:raids][device][:disks] = disks.map { |d| d.sub('/sd', '/xvd') } if !disks.empty?
@@ -44,7 +44,15 @@ node[:ebs][:raids].each do |device, options|
 end
 
 node[:ebs][:raids].each do |raid_device, options|
-  lvm_device = BlockDevice.lvm_device(raid_device)
+  ruby_block "set devices" do
+    block do
+      node.set[:ebs][:devicetomount] = raid_device
+      node.set[:ebs][:lvm_device] = BlockDevice.lvm_device(raid_device)
+      Chef::Log.debug("[set devices block]: devicetomount: #{node[:ebs][:devicetomount]}, lvm_device: #{node[:ebs][:lvm_device]}, uselvm: #{options[:uselvm]}")
+      node.save unless Chef::Config[:solo]
+    end
+    action :create
+  end
 
   Chef::Log.info("Waiting for individual disks of RAID #{options[:mount_point]}")
   options[:disks].each do |disk_device|
@@ -65,25 +73,22 @@ node[:ebs][:raids].each do |raid_device, options|
 
       BlockDevice.set_read_ahead(raid_device, node[:ebs][:md_read_ahead])
     end
+    action :create
   end
 
-  devicetomount = raid_device
-  if options[:use_lvm] == true
-    ruby_block "Create or attach LVM volume out of #{raid_device}" do
-      block do
-        BlockDevice.create_lvm(raid_device, options)
-      end
+  ruby_block "Create or attach LVM volume out of #{raid_device}" do
+    block do
+      BlockDevice.create_lvm(raid_device, options)
+      node.set[:ebs][:devicetomount] = node[:ebs][:lvm_device]
+      Chef::Log.deub("[create lvm block]: devicetomount: #{node[:ebs][:devicetomount]}, lvm_device: #{node[:ebs][:lvm_device]}")
     end
-    devicetomount = lvm_device
+    only_if { options[:uselvm] }
+    action :create
   end
 
   execute "mkfs" do
-    command "mkfs -t #{options[:fstype]} #{devicetomount}"
-
-    not_if do
-      # check volume filesystem
-      system("blkid -s TYPE -o value #{devicetomount}")
-    end
+    command lazy { "mkfs -t #{options[:fstype]} #{ node[:ebs][:devicetomount] }" }
+    not_if { system("blkid -s TYPE -o value #{ node[:ebs][:devicetomount] }") }
   end
 
   directory options[:mount_point] do
@@ -94,29 +99,27 @@ node[:ebs][:raids].each do |raid_device, options|
 
   mount options[:mount_point] do
     fstype options[:fstype]
-    device devicetomount
+    device lazy{ node[:ebs][:devicetomount] }
     options "noatime"
     not_if do
       File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{options[:mount_point]} ")}
     end
   end
 
-  mount options[:mount_point] do
-    action :enable
-    fstype options[:fstype]
-    device devicetomount
-    options "noatime"
-  end
-
   execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
 
   initrd = "/boot/initrd.img-#{node['kernel']['release']}"
-  if File.exists?(initrd)
-    initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
-    geninitrd = initmd5 != node['ebs']['initrd_md5']
-    Chef::Log.debug("oldinitrd md5: #{initmd5}")
-  else
-    geninitrd = true
+  geninitrd = false
+  ruby_block "calculate initrd md5" do
+    block do
+      if File.exists?(initrd)
+        initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
+        geninitrd = initmd5 != node['ebs']['initrd_md5']
+        Chef::Log.debug("oldinitrd md5: #{initmd5}")
+      else
+        geninitrd = true
+      end
+    end
   end
 
   execute "update-initramfs -u" do
@@ -126,10 +129,11 @@ node[:ebs][:raids].each do |raid_device, options|
 
   ruby_block "calculate new md5" do
     block do
-      node.set['ebs']['initrd_md5'] = Digest::MD5.hexdigest(IO.read(initrd)) if geninitrd
+      node.set['ebs']['initrd_md5'] = Digest::MD5.hexdigest(IO.read(initrd))
       Chef::Log.debug("after initrd md5: #{node['ebs']['initrd_md5']}")
     end
     action :create
+    only_if { geninitrd }
   end
 
   template "/etc/rc.local" do

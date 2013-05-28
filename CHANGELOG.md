@@ -1,3 +1,7 @@
+## v0.3.5
+- Refactored code and added dependency on delayed_evaluator to fix a bug that
+  prevented the proper device name from being used which was introduced with the
+  uselvm flag.
 ## v0.3.4
 - Merge upstream changes and update README
 ## v0.3.3
@@ -10,4 +14,3 @@
 - Moved to standard 3 digit cookbook version
 ## v0.0.3
 - Initial release to Opscode cookbooks site.
-
