@@ -2,7 +2,7 @@
 # create defined ebs volumes and raid devices
 
 Chef::Log.fatal!("There are no persistent raid volumes are not defined in the #{node.chef_environment}", \
-  1) if ! node['ebs']['raids'].find{|k0,v0| k0 == 'persistent_volumes'}.nil?
+                 1) if ! node['ebs']['raids'].find{|k0,v0| k0 == 'persistent_volumes'}.nil?
 
 include_recipe "aws"
 # get aws credentials
@@ -28,14 +28,13 @@ node['ebs']['raids'].each do |k,v|
         disks << mount = "/dev/sd#{next_mount}"
         next_mount.succ!
         Chef::Log.info("Attaching #{thisvol} to #{mount}")
-        vol = aws_ebs_volume mount do
+        aws_ebs_volume mount do
           aws_access_key aws['aws_access_key_id']
           aws_secret_access_key aws['aws_secret_access_key']
           device mount
           volume_id thisvol
           action :nothing
-        end
-        vol.run_action(:attach)
+        end.run_action(:attach)
       end
     end
     disks.uniq!
