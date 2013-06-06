@@ -2,10 +2,11 @@
 # Updated by Jonathan Rudenberg (jonathan@titanous.com)
 
 name "ebs"
-maintainer "Jonathan Rudenberg"
-maintainer_email "jonathan@titanous.com"
+maintainer "John Alberts"
+maintainer_email "john@alberts.me"
 description "Mounts attached EBS volumes"
-version "0.3.5"
+version "0.3.6"
+license "Apache 2.0"
 recipe "ebs::volumes", "Mounts attached EBS volumes"
 recipe "ebs::raids", "Mounts attached EBS RAIDs"
 recipe "ebs::persistent", "Mounts volumes defined in attributes"
