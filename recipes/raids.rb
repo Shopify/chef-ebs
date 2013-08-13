@@ -1,5 +1,3 @@
-include_recipe 'delayed_evaluator'
-
 package "mdadm"
 package "lvm2"
 
@@ -14,11 +12,12 @@ else
   credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
 end
 
+next_mount = ''
 node[:ebs][:raids].each do |device, options|
   disks = []
   if !options[:disks] && options[:num_disks]
     devices = Dir.glob('/dev/xvd*')
-    if devices.empty?
+    if devices.empty? and not next_mount
       next_mount = "a"
     else
       next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
@@ -54,9 +53,14 @@ node[:ebs][:raids].each do |raid_device, options|
     action :create
   end
 
-  Chef::Log.info("Waiting for individual disks of RAID #{options[:mount_point]}")
-  options[:disks].each do |disk_device|
-    BlockDevice::wait_for(disk_device)
+  ruby_block 'wait for devices' do
+    block do
+      Chef::Log.info("Waiting for individual disks of RAID #{options[:mount_point]}")
+      options[:disks].each do |disk_device|
+        BlockDevice::wait_for(disk_device)
+      end
+    end
+    action :create
   end
 
   ruby_block "Create or resume RAID array #{raid_device}" do
