@@ -88,3 +88,10 @@ You can override the databag and item names with `node[:ebs][:creds][:databag]`,
 ## Requirements
 
 - [Opscode AWS Cookbook](https://github.com/opscode-cookbooks/aws)
+
+## Acknowledgments
+
+This code was originally forked from the Scalarium [ebs cookbook][1] which has since been taken over by [AWS Opsworks][2].
+
+[1]: https://github.com/aws/opsworks-cookbooks/tree/master-chef-11.4/ebs
+[2]: http://aws.amazon.com/opsworks
