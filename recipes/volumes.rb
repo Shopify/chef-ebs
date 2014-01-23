@@ -58,6 +58,9 @@ node[:ebs][:volumes].each do |mount_point, options|
     else
         options options[:mount_options]
     end
+    if options[:pass]
+        pass options[:pass]
+    end
     action [:mount, :enable]
   end
 
