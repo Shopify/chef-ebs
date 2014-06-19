@@ -27,13 +27,21 @@ node[:ebs][:raids].each do |device, options|
       disks << mount = "/dev/sd#{next_mount}"
       next_mount = next_mount.succ
 
+      volume_type = if options[:piops]
+                      'io1'
+                    elsif options[:volume_type]
+                      options[:volume_type]
+                    else
+                      node[:ebs][:volume_type]
+                    end
+
       aws_ebs_volume mount do
         aws_access_key credentials[node.ebs.creds.aki]
         aws_secret_access_key credentials[node.ebs.creds.sak]
         size options[:disk_size]
         device mount
         availability_zone node[:ec2][:placement_availability_zone]
-        volume_type options[:piops] ? 'io1' : 'standard'
+        volume_type volume_type
         encrypted options[:encrypted] || node[:ebs][:encrypted]
         piops options[:piops]
         action [ :create, :attach ]
