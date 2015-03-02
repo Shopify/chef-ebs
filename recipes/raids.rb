@@ -84,7 +84,7 @@ node[:ebs][:raids].each do |raid_device, options|
     block do
       BlockDevice.create_lvm(raid_device, options)
       node.set[:ebs][:devicetomount] = node[:ebs][:lvm_device]
-      Chef::Log.deub("[create lvm block]: devicetomount: #{node[:ebs][:devicetomount]}, lvm_device: #{node[:ebs][:lvm_device]}")
+      Chef::Log.debug("[create lvm block]: devicetomount: #{node[:ebs][:devicetomount]}, lvm_device: #{node[:ebs][:lvm_device]}")
     end
     only_if { options[:uselvm] }
     action :create
