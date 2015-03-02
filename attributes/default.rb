@@ -3,6 +3,7 @@ default[:ebs][:creds][:item] = "aws"
 default[:ebs][:creds][:aki] = "aws_access_key_id"
 default[:ebs][:creds][:sak] = "aws_secret_access_key"
 default[:ebs][:creds][:encrypted] = true
+default[:ebs][:creds][:iam_role] = false
 default[:ebs][:volumes] = {}
 default[:ebs][:raids] = {}
 default[:ebs][:mdadm_chunk_size] = '256'

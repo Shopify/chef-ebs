@@ -79,7 +79,29 @@ Create a 10GB volume with 1000 provisioned iops, format it with XFS, and mount i
 
 `mount_options` are optional and will default to `noatime,nobootwait` on all platforms except Amazon linux, where they will default to `noatime`.
 
+> Note: The letter suffix for the `/dev/sd<letter>` / `/dev/xvd<letter>` is automatically generated starting at `f` or after any existing ids.
+
 ## Credentials
+
+### IAM Role Supplied Credentials
+
+You can use the IAM Role supplied Credentials by setting the `ebs[:creds][:iam_role]` to true and to be safe `ebs[:creds][:encrypted]` to false:
+
+```ruby
+{
+  :ebs => {
+    :creds => {
+      :iam_role => true
+      :encrypted => false
+    }
+  }
+}
+```
+
+Of course you must have set up the proper IAM Role as describe in the [Opscode AWS Cookbook](https://github.com/opscode-cookbooks/aws#using-iam-instance-role)
+and the AWS Document [IAM Roles for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+
+### Explicit Credentials from Databag
 
 Expects a `credentials` databag with an `aws` item that contains `aws_access_key_id` and `aws_secret_access_key`.
 

@@ -5,20 +5,26 @@ node[:ebs][:volumes].each do |mount_point, options|
   
   # create ebs volume
   if !options[:device] && options[:size]
-    if node[:ebs][:creds][:encrypted]
-      credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
+    unless node[:ebs][:creds][:iam_role]
+      if node[:ebs][:creds][:encrypted]
+        credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
+      else
+        credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      end
     else
-      credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      credentials = nil
     end
 
     devices = Dir.glob('/dev/xvd?')
     devices = ['/dev/xvdf'] if devices.empty?
     devid = devices.sort.last[-1,1].succ
+    # Should not use b - e as they are reserved for ephemeral disks
+    devid = "f" if devid < "f"
     device = "/dev/sd#{devid}"
 
     vol = aws_ebs_volume device do
-      aws_access_key credentials[node.ebs.creds.aki]
-      aws_secret_access_key credentials[node.ebs.creds.sak]
+      aws_access_key credentials[node.ebs.creds.aki] if credentials
+      aws_secret_access_key credentials[node.ebs.creds.sak] if credentials
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
