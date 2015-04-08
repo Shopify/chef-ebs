@@ -23,7 +23,7 @@ if BlockDevice.on_kvm?
     owner "root"
     mode 0644
   end
-  
+
   execute "Reload udev rules" do
     command "udevadm control --reload-rules"
   end

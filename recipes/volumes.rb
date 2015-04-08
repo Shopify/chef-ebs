@@ -23,6 +23,7 @@ node[:ebs][:volumes].each do |mount_point, options|
       device device
       availability_zone node[:ec2][:placement_availability_zone]
       volume_type options[:piops] ? 'io1' : 'standard'
+      encrypted options[:encrypted] || node[:ebs][:encrypted]
       piops options[:piops]
       action :nothing
     end

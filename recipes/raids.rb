@@ -34,6 +34,7 @@ node[:ebs][:raids].each do |device, options|
         device mount
         availability_zone node[:ec2][:placement_availability_zone]
         volume_type options[:piops] ? 'io1' : 'standard'
+        encrypted options[:encrypted] || node[:ebs][:encrypted]
         piops options[:piops]
         action [ :create, :attach ]
       end
