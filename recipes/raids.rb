@@ -110,18 +110,24 @@ node[:ebs][:raids].each do |raid_device, options|
     end
   end
 
-  execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
+  case node[:platform]
+  when 'redhat','centos','fedora','amazon'
+    execute "echo 'DEVICE /dev/hd*[0-9] /dev/sd*[0-9]' > /etc/mdadm.conf"
+    execute "mdadm --detail --scan >> /etc/mdadm.conf"
+  when 'debian','ubuntu'
+    execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
 
-  initrd = "/boot/initrd.img-#{node['kernel']['release']}"
-  geninitrd = false
-  ruby_block "calculate initrd md5" do
-    block do
-      if File.exists?(initrd)
-        initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
-        geninitrd = initmd5 != node['ebs']['initrd_md5']
-        Chef::Log.debug("oldinitrd md5: #{initmd5}")
-      else
-        geninitrd = true
+    initrd = "/boot/initrd.img-#{node['kernel']['release']}"
+    geninitrd = false
+    ruby_block "calculate initrd md5" do
+      block do
+        if File.exists?(initrd)
+          initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
+          geninitrd = initmd5 != node['ebs']['initrd_md5']
+          Chef::Log.debug("oldinitrd md5: #{initmd5}")
+        else
+          geninitrd = true
+        end
       end
     end
   end
