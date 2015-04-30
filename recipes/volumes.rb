@@ -24,7 +24,7 @@ node[:ebs][:volumes].each do |mount_point, options|
 
   if options[:size]
     vol = aws_ebs_volume device do
-      if !node[:ebs][:use_IAM_profiles]
+      if !node[:ebs][:iam_roles]
         aws_access_key credentials[node.ebs.creds.aki]
         aws_secret_access_key credentials[node.ebs.creds.sak]
       end
