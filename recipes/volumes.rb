@@ -8,7 +8,7 @@ node[:ebs][:volumes].each do |mount_point, options|
     if node[:ebs][:creds][:encrypted]
       credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
     else
-      if !node[:ebs][:iam_roles]
+      if !node[:ebs][:creds][:iam_roles]
         credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
       end
     end
@@ -26,7 +26,7 @@ node[:ebs][:volumes].each do |mount_point, options|
 
   if options[:size]
     vol = aws_ebs_volume device do
-      if !node[:ebs][:iam_roles]
+      if !node[:ebs][:creds][:iam_roles]
         aws_access_key credentials[node.ebs.creds.aki]
         aws_secret_access_key credentials[node.ebs.creds.sak]
       end

@@ -3,12 +3,13 @@ default[:ebs][:creds][:item] = "aws"
 default[:ebs][:creds][:aki] = "aws_access_key_id"
 default[:ebs][:creds][:sak] = "aws_secret_access_key"
 default[:ebs][:creds][:encrypted] = true
+default[:ebs][:creds][:iam_roles] = false
 default[:ebs][:volumes] = {}
 default[:ebs][:raids] = {}
 default[:ebs][:mdadm_chunk_size] = '256'
 default[:ebs][:md_read_ahead] = '65536' # 64k
 default[:ebs][:initrd_md5] = ''
-default[:ebs][:iam_roles] = false
+
 
 
 if BlockDevice.on_kvm? && ebs[:devices]
