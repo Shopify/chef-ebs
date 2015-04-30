@@ -8,7 +8,9 @@ node[:ebs][:volumes].each do |mount_point, options|
     if node[:ebs][:creds][:encrypted]
       credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
     else
-      credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      if !node[:ebs][:iam_roles]
+        credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      end
     end
 
     devices = Dir.glob('/dev/xvd?')
