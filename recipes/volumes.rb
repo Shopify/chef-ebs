@@ -1,8 +1,8 @@
 node[:ebs][:volumes].each do |mount_point, options|
-  
+
   # skip volumes that already exist
   next if File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
-  
+
   # create ebs volume
   if !options[:device] && options[:size]
     if node[:ebs][:creds][:encrypted]
@@ -15,10 +15,16 @@ node[:ebs][:volumes].each do |mount_point, options|
     devices = ['/dev/xvdf'] if devices.empty?
     devid = devices.sort.last[-1,1].succ
     device = "/dev/sd#{devid}"
+  else
+    devices = ["#{options[:device]}"]
+    devid = devices.sort.last[-1,1]
+  end
 
     vol = aws_ebs_volume device do
-      aws_access_key credentials[node.ebs.creds.aki]
-      aws_secret_access_key credentials[node.ebs.creds.sak]
+      if !node[:ebs][:use_IAM_profiles]
+        aws_access_key credentials[node.ebs.creds.aki]
+        aws_secret_access_key credentials[node.ebs.creds.sak]
+      end
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
