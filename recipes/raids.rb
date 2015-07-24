@@ -22,6 +22,7 @@ node[:ebs][:raids].each do |device, options|
       next_mount = "a"
     else
       next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
+      next_mount = 'f' unless next_mount >= 'f'
     end
     1.upto(options[:num_disks].to_i) do |i|
       disks << mount = "/dev/sd#{next_mount}"

@@ -13,6 +13,7 @@ if devices.empty?
   next_mount = "a"
 else
   next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
+  next_mount = 'f' unless next_mount >= 'f'
 end
 next_mount.gsub!("xvd","sd")
 
