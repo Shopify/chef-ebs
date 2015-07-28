@@ -53,10 +53,18 @@ node[:ebs][:volumes].each do |mount_point, options|
     mode 0755
   end
 
+  case node[:platform]
+  when 'amazon'
+    default_mount_options = 'noatime'  
+  else
+    default_mount_options = 'noatime,nobootwait'
+  end
+  mount_options = options[:mount_options] || default_mount_options
+
   mount mount_point do
     fstype options[:fstype]
     device device
-    options 'noatime,nobootwait'
+    options mount_options
     action [:mount, :enable]
   end
 
