@@ -10,9 +10,10 @@ aws = data_bag_item(node['ebs']['creds']['databag'], node['ebs']['creds']['item'
 
 devices = Dir.glob('/dev/xvd*')
 if devices.empty?
-  next_mount = "a"
+  next_mount = "f"
 else
   next_mount = devices.map{ |x| x[0,9] }.uniq.sort.last[-1,1].succ
+  next_mount = 'f' unless next_mount >= 'f'
 end
 next_mount.gsub!("xvd","sd")
 
