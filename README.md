@@ -79,6 +79,8 @@ Create a 10GB volume with 1000 provisioned iops, format it with XFS, and mount i
 
 `mount_options` are optional and will default to `noatime,nobootwait` on all platforms except Amazon linux, where they will default to `noatime`.
 
+`pass` The pass number used by the file system check (fsck) command while creating a file systems table (fstab) entry. Optional property (Default: 2).
+
 ## Credentials
 
 Expects a `credentials` databag with an `aws` item that contains `aws_access_key_id` and `aws_secret_access_key`.
