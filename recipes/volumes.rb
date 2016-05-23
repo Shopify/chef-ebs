@@ -36,6 +36,7 @@ node[:ebs][:volumes].each do |mount_point, options|
       volume_type options[:piops] ? 'io1' : options[:gp2] ? 'gp2' : 'standard'
       piops options[:piops]
       action :nothing
+      delete_on_termination options[:delete_on_termination]
     end
     vol.run_action(:create)
     vol.run_action(:attach)
