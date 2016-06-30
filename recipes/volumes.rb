@@ -35,6 +35,10 @@ node[:ebs][:volumes].each do |mount_point, options|
       availability_zone node[:ec2][:placement_availability_zone]
       volume_type options[:piops] ? 'io1' : options[:gp2] ? 'gp2' : 'standard'
       piops options[:piops]
+      if node[:ebs][:encryption]
+        encrypted  true
+        kms_key_id options[:kms_key_id]
+      end
       action :nothing
       delete_on_termination options[:delete_on_termination]
     end
