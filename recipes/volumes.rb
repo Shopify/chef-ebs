@@ -53,10 +53,17 @@ node[:ebs][:volumes].each do |mount_point, options|
     mode 0755
   end
 
+  fstab_options = value_for_platform(
+    'default' => 'noatime,nobootwait',
+    'ubuntu' => {
+      '>= 16.04' => 'noatime,nofail'
+    }
+  )
+
   mount mount_point do
     fstype options[:fstype]
     device device
-    options 'noatime,nobootwait'
+    options fstab_options
     action [:mount, :enable]
   end
 
