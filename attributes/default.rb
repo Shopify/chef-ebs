@@ -8,6 +8,7 @@ default[:ebs][:raids] = {}
 default[:ebs][:mdadm_chunk_size] = '256'
 default[:ebs][:md_read_ahead] = '65536' # 64k
 default[:ebs][:initrd_md5] = ''
+default[:ebs][:use_IAM_profiles] = false
 
 
 if BlockDevice.on_kvm? && ebs[:devices]
