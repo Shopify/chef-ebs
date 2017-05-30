@@ -60,7 +60,7 @@ Create a RAID 10 across the volumes specified in the `persistent_volumes` array,
 
 ### EBS Volume Creation
 
-Create a 10GB volume with 1000 provisioned iops, format it with XFS, and mount it on `/data` with `noatime` as an option.
+Create a 10GB EBS General Purpose SSD volume, format it with XFS, and mount it on `/data` with `noatime` as an option.
 
 ```ruby
 {
@@ -68,7 +68,7 @@ Create a 10GB volume with 1000 provisioned iops, format it with XFS, and mount i
     :volumes => {
       '/data' => {
         :size => 10,
-        :piops => 1000,
+        :volume_type => 'gp2',
         :fstype => 'xfs',
         :mount_options => 'noatime'
       }
@@ -78,6 +78,10 @@ Create a 10GB volume with 1000 provisioned iops, format it with XFS, and mount i
 ```
 
 `mount_options` are optional and will default to `noatime,nobootwait` on all platforms except Amazon linux, where they will default to `noatime`.
+
+## Volume Encryption
+
+You can provide `encrypted: true` for an encrypted volume.
 
 ## Credentials
 

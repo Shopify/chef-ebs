@@ -17,13 +17,22 @@ node[:ebs][:volumes].each do |mount_point, options|
     devid = 'f' unless devid >= 'f'
     device = "/dev/sd#{devid}"
 
+    volume_type = if options[:piops]
+                    'io1'
+                  elsif options[:volume_type]
+                    options[:volume_type]
+                  else
+                    node[:ebs][:volume_type]
+                  end
+
     vol = aws_ebs_volume device do
       aws_access_key credentials[node.ebs.creds.aki]
       aws_secret_access_key credentials[node.ebs.creds.sak]
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
-      volume_type options[:piops] ? 'io1' : 'standard'
+      volume_type volume_type
+      encrypted options[:encrypted] || node[:ebs][:encrypted]
       piops options[:piops]
       action :nothing
     end
