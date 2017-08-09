@@ -73,6 +73,7 @@ node[:ebs][:volumes].each do |mount_point, options|
     device device
     options 'noatime,nobootwait'
     action [:mount, :enable]
+    only_if { device and options.has_key?(:fstype) }
   end
 
 end
