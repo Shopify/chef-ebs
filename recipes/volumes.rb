@@ -1,14 +1,16 @@
 node[:ebs][:volumes].each do |mount_point, options|
-  
+
   # skip volumes that already exist
   next if File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
-  
+
   # create ebs volume
-  if !options[:device] && options[:size]
+  if !options[:device]
     if node[:ebs][:creds][:encrypted]
       credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
     else
-      credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      if !node[:ebs][:creds][:iam_roles]
+        credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      end
     end
 
     devices = Dir.glob('/dev/xvd?')
@@ -16,16 +18,30 @@ node[:ebs][:volumes].each do |mount_point, options|
     devid = devices.sort.last[-1,1].succ
     devid = 'f' unless devid >= 'f'
     device = "/dev/sd#{devid}"
+  else
+    devices = ["#{options[:device]}"]
+    devid = devices.sort.last[-1,1]
+  end
 
+  device = "/dev/sd#{devid}"
+
+  if options[:size]
     vol = aws_ebs_volume device do
-      aws_access_key credentials[node.ebs.creds.aki]
-      aws_secret_access_key credentials[node.ebs.creds.sak]
+      if !node[:ebs][:creds][:iam_roles]
+        aws_access_key credentials[node.ebs.creds.aki]
+        aws_secret_access_key credentials[node.ebs.creds.sak]
+      end
       size options[:size]
       device device
       availability_zone node[:ec2][:placement_availability_zone]
-      volume_type options[:piops] ? 'io1' : 'standard'
+      volume_type options[:piops] ? 'io1' : options[:gp2] ? 'gp2' : 'standard'
       piops options[:piops]
+      if node[:ebs][:volume][:encryption]
+        encrypted  true
+        kms_key_id node[:ebs][:volume][:kms_key_id]
+      end
       action :nothing
+      delete_on_termination options[:delete_on_termination]
     end
     vol.run_action(:create)
     vol.run_action(:attach)
@@ -65,6 +81,7 @@ node[:ebs][:volumes].each do |mount_point, options|
     device device
     options fstab_options
     action [:mount, :enable]
+    only_if { device and options.has_key?(:fstype) }
   end
 
 end

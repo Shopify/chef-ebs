@@ -6,7 +6,11 @@ Chef::Log.fatal!("There are no persistent raid volumes are not defined in the #{
 
 include_recipe "aws"
 # get aws credentials
-aws = data_bag_item(node['ebs']['creds']['databag'], node['ebs']['creds']['item'])
+if !node[:ebs][:creds][:iam_roles]
+  aws = data_bag_item(node['ebs']['creds']['databag'], node['ebs']['creds']['item'])
+else
+  aws = nil
+end
 
 devices = Dir.glob('/dev/xvd*')
 if devices.empty?
@@ -30,8 +34,8 @@ node['ebs']['raids'].each do |k,v|
         next_mount.succ!
         Chef::Log.info("Attaching #{thisvol} to #{mount}")
         aws_ebs_volume mount do
-          aws_access_key aws['aws_access_key_id']
-          aws_secret_access_key aws['aws_secret_access_key']
+          aws_access_key aws['aws_access_key_id'] if aws
+          aws_secret_access_key aws['aws_secret_access_key'] if aws
           device mount
           volume_id thisvol
           action :nothing

@@ -29,12 +29,14 @@ node[:ebs][:raids].each do |device, options|
       next_mount = next_mount.succ
 
       aws_ebs_volume mount do
-        aws_access_key credentials[node.ebs.creds.aki]
-        aws_secret_access_key credentials[node.ebs.creds.sak]
+        if !node[:ebs][:creds][:iam_roles]
+          aws_access_key credentials[node.ebs.creds.aki]
+          aws_secret_access_key credentials[node.ebs.creds.sak]
+        end
         size options[:disk_size]
         device mount
         availability_zone node[:ec2][:placement_availability_zone]
-        volume_type options[:piops] ? 'io1' : 'standard'
+        volume_type options[:piops] ? 'io1' : options[:gp2] ? 'gp2' : 'standard'
         piops options[:piops]
         action [ :create, :attach ]
       end
